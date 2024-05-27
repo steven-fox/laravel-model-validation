@@ -14,20 +14,25 @@ use StevenFox\LaravelModelValidation\Listeners\ValidateModel;
 trait ValidatesAttributes
 {
     /**
-     * Indicates if all attribute validation is enabled.
+     * Indicates if attribute validation is enabled for all participating models.
      */
     protected static bool $validateWhenSaving = true;
+
+    /**
+     * Validation rules that can be set to override all other rules.
+     */
+    protected array $supersedingValidationRules = [];
+
+    /**
+     * Validation rules that will be merged with the existing
+     * rules defined on the model.
+     */
+    protected array $mixinValidationRules = [];
 
     /**
      * Indicates if the validation listeners have been registered.
      */
     private static bool $validationListenersRegistered = false;
-
-    /**
-     * Validation rules that can be temporarily set to override the
-     * rules defined from the models' methods.
-     */
-    protected array $temporaryValidationRules = [];
 
     public static function bootValidatesAttributes(): void
     {
@@ -207,32 +212,58 @@ trait ValidatesAttributes
         // If the developer has set temporary validation rules for the model,
         // we will use those. Otherwise, we will retrieve the rules from the
         // method(s) defined on the model.
-        if ($tempRules = $this->getTemporaryValidationRules()) {
+        if ($tempRules = $this->getsupersedingValidationRules()) {
             return $tempRules;
         }
 
-        if ($this->exists) {
-            return $this->validationRulesForUpdating();
-        }
+        $rules = $this->exists
+            ? $this->validationRulesForUpdating()
+            : $this->validationRulesForCreating();
 
-        return $this->validationRulesForCreating();
+        return array_merge($rules, $this->getMixinValidationRules());
     }
 
-    public function getTemporaryValidationRules(): array
+    public function getSupersedingValidationRules(): array
     {
-        return $this->temporaryValidationRules;
+        return $this->supersedingValidationRules;
     }
 
-    public function setTemporaryValidationRules(array $rules): static
+    public function setSupersedingValidationRules(array $rules): static
     {
-        $this->temporaryValidationRules = $rules;
+        $this->supersedingValidationRules = $rules;
 
         return $this;
     }
 
-    public function clearTemporaryValidationRules(): static
+    public function clearSupersedingValidationRules(): static
     {
-        $this->temporaryValidationRules = [];
+        $this->supersedingValidationRules = [];
+
+        return $this;
+    }
+
+    public function getMixinValidationRules(): array
+    {
+        return $this->mixinValidationRules;
+    }
+
+    public function setMixinValidationRules(array $rules): static
+    {
+        $this->mixinValidationRules = $rules;
+
+        return $this;
+    }
+
+    public function addMixinValidationRules(array $rules): static
+    {
+        $this->mixinValidationRules = array_merge($this->mixinValidationRules, $rules);
+
+        return $this;
+    }
+
+    public function clearMixinValidationRules(): static
+    {
+        $this->mixinValidationRules = [];
 
         return $this;
     }
