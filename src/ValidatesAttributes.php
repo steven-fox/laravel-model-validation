@@ -32,6 +32,11 @@ trait ValidatesAttributes
     protected array $mixinValidationRules = [];
 
     /**
+     * The validator instance that was last used to perform validation.
+     */
+    protected ?Validator $validator = null;
+
+    /**
      * Indicates if the validation listeners have been registered.
      */
     private static bool $validationListenersRegistered = false;
@@ -139,19 +144,27 @@ trait ValidatesAttributes
      */
     public function validate(): Validator
     {
-        $validator = $this->makeValidator();
+        $this->validator = $this->makeValidator();
 
-        $this->fireModelValidationEvent('validating', $validator);
+        $this->fireModelValidationEvent('validating', $this->validator);
 
-        $fails = $validator->fails();
+        $fails = $this->validator->fails();
 
-        $this->fireModelValidationEvent('validated', $validator);
+        $this->fireModelValidationEvent('validated', $this->validator);
 
         if ($fails) {
-            $this->throwValidationException($validator);
+            $this->throwValidationException($this->validator);
         }
 
-        return $validator;
+        return $this->validator;
+    }
+
+    /**
+     * Get the validator instance that was last used to perform validation.
+     */
+    public function validator(): ?Validator
+    {
+        return $this->validator;
     }
 
     /**
