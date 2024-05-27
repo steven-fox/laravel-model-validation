@@ -10,7 +10,6 @@ class LaravelModelValidationServiceProvider extends PackageServiceProvider
     public function configurePackage(Package $package): void
     {
         $package
-            ->name('laravel-model-validation')
-            ->hasConfigFile();
+            ->name('laravel-model-validation');
     }
 }
