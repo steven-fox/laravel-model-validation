@@ -36,7 +36,7 @@ trait ValidatesAttributes
 
     public static function bootValidatesAttributes(): void
     {
-        self::registerEventListeners();
+        self::registerValidatingEventListeners();
     }
 
     protected function initializeValidatesAttributes(): void
@@ -47,13 +47,13 @@ trait ValidatesAttributes
         ]);
     }
 
-    private static function registerEventListeners(): void
+    private static function registerValidatingEventListeners(): void
     {
         if (static::$validationListenersRegistered) {
             return;
         }
 
-        foreach (static::listeners() as $event => $listener) {
+        foreach (static::validatingListeners() as $event => $listener) {
             static::{$event}($listener);
         }
 
@@ -63,7 +63,7 @@ trait ValidatesAttributes
     /**
      * @return array<array-key, class-string|\Illuminate\Events\QueuedClosure|\Closure|array>
      */
-    protected static function listeners(): array
+    protected static function validatingListeners(): array
     {
         // We specifically use the 'creating' and 'updating' events
         // over the more general 'saving' event so that we don't
@@ -85,7 +85,7 @@ trait ValidatesAttributes
     {
         static::$validateWhenSaving = true;
 
-        static::registerEventListeners();
+        static::registerValidatingEventListeners();
     }
 
     public static function shouldValidateWhenSaving(): bool
