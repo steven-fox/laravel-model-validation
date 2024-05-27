@@ -2,23 +2,14 @@
 
 namespace StevenFox\LaravelModelValidation\Listeners;
 
-use Illuminate\Database\Eloquent\Model;
-use InvalidArgumentException;
+use StevenFox\LaravelModelValidation\Contracts\ValidatesWhenSaving;
 
 class ValidateModel
 {
-    public function handle(Model $model): void
+    public function handle(mixed $model): void
     {
-        if (! method_exists($model, 'validate')) {
-            throw new InvalidArgumentException(
-                "The model must have a 'validate()' method."
-            );
-        }
-
-        if (! method_exists($model, 'shouldNotValidateWhenSaving')) {
-            throw new InvalidArgumentException(
-                "The model must have a static 'shouldNotValidateWhenSaving()' method."
-            );
+        if (! $model instanceof ValidatesWhenSaving) {
+            return;
         }
 
         if ($model::shouldNotValidateWhenSaving()) {
