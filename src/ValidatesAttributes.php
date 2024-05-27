@@ -5,9 +5,11 @@ namespace StevenFox\LaravelModelValidation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
+use StevenFox\LaravelModelValidation\Exceptions\ModelValidationException;
+use StevenFox\LaravelModelValidation\Listeners\ValidateModel;
 
 /**
- * @var Model $this
+ * @mixin Model
  */
 trait ValidatesAttributes
 {
@@ -19,37 +21,54 @@ trait ValidatesAttributes
     /**
      * Indicates if the validation listeners have been registered.
      */
-    protected static bool $validationListenersRegistered = false;
+    private static bool $validationListenersRegistered = false;
 
+    /**
+     * Validation rules that can be temporarily set to override the
+     * rules defined from the models' methods.
+     */
     protected array $temporaryValidationRules = [];
 
     public static function bootValidatesAttributes(): void
     {
-        if (static::shouldValidateWhenSaving()) {
-            static::registerEventListeners();
-        }
+        self::registerEventListeners();
     }
 
-    public static function registerEventListeners(): void
+    protected function initializeValidatesAttributes(): void
+    {
+        $this->addObservableEvents([
+            'validating',
+            'validated',
+        ]);
+    }
+
+    private static function registerEventListeners(): void
+    {
+        if (static::$validationListenersRegistered) {
+            return;
+        }
+
+        foreach (static::listeners() as $event => $listener) {
+            static::{$event}($listener);
+        }
+
+        static::$validationListenersRegistered = true;
+    }
+
+    /**
+     * @return array<array-key, class-string|\Illuminate\Events\QueuedClosure|\Closure|array>
+     */
+    protected static function listeners(): array
     {
         // We specifically use the 'creating' and 'updating' events
         // over the more general 'saving' event so that we don't
         // redundantly validate a model that is "saved" without
         // any changed attributes (which would NOT fire an
         // 'updating' event, saving us from redundancy).
-        static::creating(function (self $model) {
-            if (static::shouldValidateWhenSaving()) {
-                $model->validate();
-            }
-        });
-
-        static::updating(function (self $model) {
-            if (static::shouldValidateWhenSaving()) {
-                $model->validate();
-            }
-        });
-
-        static::$validationListenersRegistered = true;
+        return [
+            'creating' => ValidateModel::class,
+            'updating' => ValidateModel::class,
+        ];
     }
 
     public static function disableValidationWhenSaving(): void
@@ -61,9 +80,7 @@ trait ValidatesAttributes
     {
         static::$validateWhenSaving = true;
 
-        if (! static::$validationListenersRegistered) {
-            static::registerEventListeners();
-        }
+        static::registerEventListeners();
     }
 
     public static function shouldValidateWhenSaving(): bool
@@ -105,16 +122,13 @@ trait ValidatesAttributes
      * Validate the attributes on the model.
      *
      * @return Validator|false Returns the Validator instance upon success.
-     *                         Returns an explicit false if validation fails and you have a validation event listener that returns false upon invocation;
-     *                         otherwise, throws a ModelValidationException upon failure.
+     *                         Throws a ModelValidationException if validation fails.
      */
     public function validate(): Validator|false
     {
         $validator = $this->makeValidator();
 
-        if ($this->fireModelValidationEvent('validating', $validator) === false) {
-            return false;
-        }
+        $this->fireModelValidationEvent('validating', $validator);
 
         $fails = $validator->fails();
 
@@ -132,7 +146,17 @@ trait ValidatesAttributes
      */
     protected function throwValidationException(Validator $validator): never
     {
-        throw new ModelValidationException($this, $validator);
+        $exceptionClass = $this->validationExceptionClass();
+
+        throw new $exceptionClass($this, $validator);
+    }
+
+    /**
+     * @return class-string<ModelValidationException>
+     */
+    protected function validationExceptionClass(): string
+    {
+        return ModelValidationException::class;
     }
 
     public function makeValidator(): Validator
@@ -255,37 +279,25 @@ trait ValidatesAttributes
     }
 
     /**
-     * Determine if the model passes validation, catching any
-     * thrown validation exceptions.
-     *
-     * @return array{bool, Validator|false} A tuple of the validation result and the Validator instance.
+     * Determine if the model passes validation.
      */
-    public function passesValidation(): array
+    public function passesValidation(): bool
     {
         try {
-            $validator = $this->validate();
+            $this->validate();
 
-            if ($validator === false) {
-                return [false, $validator];
-            }
-
-            return [true, $validator];
+            return true;
         } catch (ValidationException $e) {
-            return [false, $e->validator];
+            return false;
         }
     }
 
     /**
-     * Determine if the model fails validation, catching any
-     * thrown validation exceptions.
-     *
-     * @return array{bool, Validator} A tuple of the validation result and the Validator instance.
+     * Determine if the model fails validation.
      */
-    public function failsValidation(): array
+    public function failsValidation(): bool
     {
-        [$passes, $validator] = $this->passesValidation();
-
-        return [! $passes, $validator];
+        return ! $this->passesValidation();
     }
 
     /**
@@ -293,7 +305,7 @@ trait ValidatesAttributes
      *
      * @see Model::fireModelEvent()
      */
-    protected function fireModelValidationEvent(string $event, Validator $validator, $halt = true): mixed
+    private function fireModelValidationEvent(string $event, Validator $validator, $halt = false): mixed
     {
         if (! isset(static::$dispatcher)) {
             return true;
@@ -309,9 +321,11 @@ trait ValidatesAttributes
             return false;
         }
 
-        return ! empty($result) ? $result : static::$dispatcher->{$method}(
-            "eloquent.{$event}: ".static::class, [$this, $validator]
-        );
+        return ! empty($result)
+            ? $result
+            : static::$dispatcher->{$method}(
+                "eloquent.{$event}: ".static::class, [$this, $validator]
+            );
     }
 
     /**
@@ -319,7 +333,7 @@ trait ValidatesAttributes
      *
      * @see Model::fireCustomModelEvent()
      */
-    protected function fireCustomModelValidationEvent($event, Validator $validator, $method): mixed
+    private function fireCustomModelValidationEvent($event, Validator $validator, $method): mixed
     {
         if (! isset($this->dispatchesEvents[$event])) {
             return null;

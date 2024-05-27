@@ -1,6 +1,6 @@
 <?php
 
-namespace StevenFox\LaravelModelValidation;
+namespace StevenFox\LaravelModelValidation\Exceptions;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
