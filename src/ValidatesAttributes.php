@@ -113,12 +113,18 @@ trait ValidatesAttributes
         }
     }
 
-    public static function validating(callable|string|array $callback): void
+    /**
+     * @param class-string|\Illuminate\Events\QueuedClosure|\Closure($this, Validator): void|array $callback
+     */
+    public static function validating(mixed $callback): void
     {
         static::registerModelEvent('validating', $callback);
     }
 
-    public static function validated(callable|string|array $callback): void
+    /**
+     * @param class-string|\Illuminate\Events\QueuedClosure|\Closure($this, Validator): void|array $callback
+     */
+    public static function validated(mixed $callback): void
     {
         static::registerModelEvent('validated', $callback);
     }
@@ -126,10 +132,10 @@ trait ValidatesAttributes
     /**
      * Validate the attributes on the model.
      *
-     * @return Validator|false Returns the Validator instance upon success.
-     *                         Throws a ModelValidationException if validation fails.
+     * @return Validator Returns the Validator instance upon success.
+     *                   Throws a ModelValidationException if validation fails.
      */
-    public function validate(): Validator|false
+    public function validate(): Validator
     {
         $validator = $this->makeValidator();
 
