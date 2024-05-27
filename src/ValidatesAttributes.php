@@ -21,7 +21,7 @@ trait ValidatesAttributes
     /**
      * Validation rules that can be set to override all other rules.
      */
-    protected array $supersedingValidationRules = [];
+    protected array $supersedingValidationRules;
 
     /**
      * Validation rules that will be merged with the existing
@@ -209,13 +209,13 @@ trait ValidatesAttributes
 
     public function validationRules(): array
     {
-        // If the developer has set temporary validation rules for the model,
-        // we will use those. Otherwise, we will retrieve the rules from the
-        // method(s) defined on the model.
-        if ($tempRules = $this->getsupersedingValidationRules()) {
+        // If the developer has set superseding validation rules for the model,
+        // we will use those exclusively.
+        if (($tempRules = $this->getSupersedingValidationRules()) !== null) {
             return $tempRules;
         }
 
+        // Otherwise, we will retrieve the normal rules defined on the model.
         $rules = $this->exists
             ? $this->validationRulesForUpdating()
             : $this->validationRulesForCreating();
@@ -223,9 +223,9 @@ trait ValidatesAttributes
         return array_merge($rules, $this->getMixinValidationRules());
     }
 
-    public function getSupersedingValidationRules(): array
+    public function getSupersedingValidationRules(): ?array
     {
-        return $this->supersedingValidationRules;
+        return $this->supersedingValidationRules ?? null;
     }
 
     public function setSupersedingValidationRules(array $rules): static
@@ -237,7 +237,7 @@ trait ValidatesAttributes
 
     public function clearSupersedingValidationRules(): static
     {
-        $this->supersedingValidationRules = [];
+        unset($this->supersedingValidationRules);
 
         return $this;
     }
