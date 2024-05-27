@@ -3,6 +3,8 @@
 namespace StevenFox\LaravelModelValidation;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Unique;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 use StevenFox\LaravelModelValidation\Exceptions\ModelValidationException;
@@ -335,6 +337,15 @@ trait ValidatesAttributes
     public function failsValidation(): bool
     {
         return ! $this->passesValidation();
+    }
+
+    protected function uniqueRule(): Unique
+    {
+        $rule = Rule::unique($this->getTable());
+
+        return $this->exists
+            ? $rule->ignoreModel($this)
+            : $rule;
     }
 
     /**
