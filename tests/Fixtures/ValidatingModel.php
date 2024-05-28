@@ -41,4 +41,26 @@ class ValidatingModel extends Model
             'encrypted_object' => AsEncryptedArrayObject::class,
         ];
     }
+
+    protected function prepareAttributesForValidation(array $rawAttributes): array
+    {
+        $rawAttributes['array_object'] = $this->array_object?->toArray();
+        $rawAttributes['collection'] = $this->collection?->toArray();
+
+        return $rawAttributes;
+    }
+
+    public function customValidationMessages(): array
+    {
+        return [
+            'required_string.string' => 'This is a custom message for the required_string.string rule',
+        ];
+    }
+
+    public function customValidationAttributeNames(): array
+    {
+        return [
+            'datetime' => 'custom datetime attribute name',
+        ];
+    }
 }
