@@ -15,7 +15,7 @@ class ValidatingModel extends Model
 
     protected $guarded = [];
 
-    protected function commonValidationRules(): array
+    protected function baseValidationRules(): array
     {
         return [
             'required_string' => ['required', 'string'],

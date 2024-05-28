@@ -34,7 +34,7 @@ composer require steven-fox/laravel-model-validation
 ### The `ValidatesAttributes` Trait
 Add validation functionality to a Model by:
 1. Adding the `StevenFox\LaravelModelValidation\ValidatesAttributes` trait to the model.
-2. Defining the rules via the `commonValidationRules()` method.
+2. Defining the rules on the model via one or more of the available methods: `baseValidationRules()`, `validationRulesUniqueToCreating()`, `validationRulesUniqueToUpdating()`, `validationRulesForCreating()`, `validationRulesForUpdating()`.
 
 ```php
 use Illuminate\Database\Eloquent\Model;
@@ -44,13 +44,15 @@ class ValidatingModel extends Model
 {
     use ValidatesAttributes;
     
-    protected function commonValidationRules(): array
+    protected function baseValidationRules(): array
     {
         return [
             // rules go here as ['attribute' => ['rule1', 'rule2', ...]
             // like a normal validation setup
         ];
     }
+    
+    // Other methods are available for more control over rules... see below.
 }
 
 $model = new ValidatingModel($request->json());
@@ -112,7 +114,7 @@ class ValidatingModel extends Model
     /**
      * Define rules that are common to both creating and updating a model record.
      */
-    protected function commonValidationRules(): array
+    protected function baseValidationRules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -142,7 +144,7 @@ class ValidatingModel extends Model
     
     /**
      * Define the rules that are used when creating a record.
-     * If you overload this method on your model, the 'commonValidationRules'
+     * If you overload this method on your model, the 'baseValidationRules'
      * will not be used by default. 
      */
     protected function validationRulesForCreating(): array
@@ -152,7 +154,7 @@ class ValidatingModel extends Model
     
     /**
      * Define the rules that are used when updating a record.
-     * If you overload this method on your model, the 'commonValidationRules'
+     * If you overload this method on your model, the 'baseValidationRules'
      * will not be used by default. 
      */
     protected function validationRulesForUpdating(): array
@@ -163,13 +165,13 @@ class ValidatingModel extends Model
 ```
 
 #### Unique Columns
-Specifying an attribute as `unique` is a common validation need. Therefore, this package provides a shortcut that you can use in the `commonValidationRules()` method for your unique columns. The helper function will simply define a `Unique` rule for the attribute, and when the model record already exists in the database, the rule will automatically invoke the `ignoreModel($this)` method.
+Specifying an attribute as `unique` is a common validation need. Therefore, this package provides a shortcut that you can use in the `baseValidationRules()` method for your unique columns. The helper function will simply define a `Unique` rule for the attribute, and when the model record already exists in the database, the rule will automatically invoke the `ignoreModel($this)` method.
 
 ```php
 /**
  * Define rules that are common to both creating and updating a model record.
  */
-protected function commonValidationRules(): array
+protected function baseValidationRules(): array
 {
     return [
         'email' => [

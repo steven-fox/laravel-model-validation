@@ -5,13 +5,6 @@ use StevenFox\LaravelModelValidation\Listeners\ValidateModel;
 use StevenFox\LaravelModelValidation\Tests\Fixtures\ValidatesWhenSavingModel;
 use StevenFox\LaravelModelValidation\Tests\Fixtures\ValidatingModel;
 
-it('does stuff', function () {
-    $m = new ValidatingModel();
-    $mm = new ValidatesWhenSavingModel();
-
-    $mm->save();
-});
-
 it('registers a "creating" model event listeners when shouldValidateWhenSaving() is true', function () {
     Event::forget('*');
     Event::fake();

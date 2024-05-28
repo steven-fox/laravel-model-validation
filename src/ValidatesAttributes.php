@@ -295,7 +295,7 @@ trait ValidatesAttributes
     protected function validationRulesForCreating(): array
     {
         return [
-            ...$this->commonValidationRules(),
+            ...$this->baseValidationRules(),
             ...$this->validationRulesUniqueToCreating(),
         ];
     }
@@ -303,7 +303,7 @@ trait ValidatesAttributes
     protected function validationRulesForUpdating(): array
     {
         return [
-            ...$this->commonValidationRules(),
+            ...$this->baseValidationRules(),
             ...$this->validationRulesUniqueToUpdating(),
         ];
     }
@@ -318,7 +318,7 @@ trait ValidatesAttributes
         return [];
     }
 
-    protected function commonValidationRules(): array
+    protected function baseValidationRules(): array
     {
         return [];
     }
