@@ -142,7 +142,7 @@ class ValidatingModel extends Model
     
     /**
      * Define the rules that are used when creating a record.
-     * If you use this method on your model, the 'commonValidationRules'
+     * If you overload this method on your model, the 'commonValidationRules'
      * will not be used by default. 
      */
     protected function validationRulesForCreating(): array
@@ -152,7 +152,7 @@ class ValidatingModel extends Model
     
     /**
      * Define the rules that are used when updating a record.
-     * If you use this method on your model, the 'commonValidationRules'
+     * If you overload this method on your model, the 'commonValidationRules'
      * will not be used by default. 
      */
     protected function validationRulesForUpdating(): array
@@ -186,7 +186,7 @@ protected function commonValidationRules(): array
 ### Runtime Customization for Rules
 
 #### Superseding Rules
-You can also use the `setSupersedingValidationRules()` method to set temporary rules that will **replace** all other rules defined on the model.
+You can use the `setSupersedingValidationRules()` method to set temporary rules that will **replace** all other rules defined on the model.
 ```php
 $model = new ValidatingModel();
 
