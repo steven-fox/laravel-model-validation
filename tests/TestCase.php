@@ -2,9 +2,7 @@
 
 namespace StevenFox\LaravelModelValidation\Tests;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use StevenFox\LaravelModelValidation\LaravelModelValidationServiceProvider;
 
 class TestCase extends Orchestra
 {
