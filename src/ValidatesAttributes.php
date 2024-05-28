@@ -7,6 +7,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
+use StevenFox\LaravelModelValidation\Contracts\ValidatesWhenSaving;
 use StevenFox\LaravelModelValidation\Exceptions\ModelValidationException;
 use StevenFox\LaravelModelValidation\Listeners\ValidateModel;
 
@@ -36,11 +37,6 @@ trait ValidatesAttributes
      */
     protected ?Validator $validator = null;
 
-    /**
-     * Indicates if the validation listeners have been registered.
-     */
-    private static bool $validationListenersRegistered = false;
-
     public static function bootValidatesAttributes(): void
     {
         self::registerValidatingEventListeners();
@@ -54,17 +50,11 @@ trait ValidatesAttributes
         ]);
     }
 
-    private static function registerValidatingEventListeners(): void
+    protected static function registerValidatingEventListeners(): void
     {
-        if (static::$validationListenersRegistered) {
-            return;
-        }
-
         foreach (static::validatingListeners() as $event => $listener) {
             static::{$event}($listener);
         }
-
-        static::$validationListenersRegistered = true;
     }
 
     /**
@@ -72,6 +62,10 @@ trait ValidatesAttributes
      */
     protected static function validatingListeners(): array
     {
+        if (! is_a(static::class, ValidatesWhenSaving::class, true)) {
+            return [];
+        }
+
         // We specifically use the 'creating' and 'updating' events
         // over the more general 'saving' event so that we don't
         // redundantly validate a model that is "saved" without
@@ -91,13 +85,12 @@ trait ValidatesAttributes
     public static function reactivateValidationWhenSaving(): void
     {
         static::$validateWhenSaving = true;
-
-        static::registerValidatingEventListeners();
     }
 
     public static function shouldValidateWhenSaving(): bool
     {
-        return static::$validateWhenSaving;
+        return static::$validateWhenSaving
+            && is_a(static::class, ValidatesWhenSaving::class, true);
     }
 
     public static function shouldNotValidateWhenSaving(): bool
@@ -121,7 +114,7 @@ trait ValidatesAttributes
     }
 
     /**
-     * @param class-string|\Illuminate\Events\QueuedClosure|\Closure($this, Validator): void|array $callback
+     * @param  class-string|\Illuminate\Events\QueuedClosure|\Closure($this, Validator): void|array  $callback
      */
     public static function validating(mixed $callback): void
     {
@@ -129,7 +122,7 @@ trait ValidatesAttributes
     }
 
     /**
-     * @param class-string|\Illuminate\Events\QueuedClosure|\Closure($this, Validator): void|array $callback
+     * @param  class-string|\Illuminate\Events\QueuedClosure|\Closure($this, Validator): void|array  $callback
      */
     public static function validated(mixed $callback): void
     {
@@ -244,11 +237,18 @@ trait ValidatesAttributes
         return array_merge($rules, $this->getMixinValidationRules());
     }
 
+    /**
+     * Get the superseding validation rules.
+     */
     public function getSupersedingValidationRules(): ?array
     {
         return $this->supersedingValidationRules ?? null;
     }
 
+    /**
+     * Set validation rules that will supersede (replace) all other rules
+     * for the model.
+     */
     public function setSupersedingValidationRules(array $rules): static
     {
         $this->supersedingValidationRules = $rules;
@@ -256,6 +256,9 @@ trait ValidatesAttributes
         return $this;
     }
 
+    /**
+     * Remove all superseding validation rules on the model.
+     */
     public function clearSupersedingValidationRules(): static
     {
         unset($this->supersedingValidationRules);
