@@ -215,7 +215,7 @@ $model->clearSupersedingValidationRules();
 $model->validate(); // Validation will occur normally.
 ```
 #### Mixin Rules
-You can use the `setMixinValidationRules()` method to set rules that will be **merged** with the other rules defined on the model. The rules you define for a particular attribute will replace any existing rules for that attribute.
+You can use the `addMixinValidationRules()` and `setMixinValidationRules()` methods to define rules that will be **merged** with the other rules defined on the model. The rules you mixin for a particular attribute will replace any existing rules for that attribute.
 
 For example, suppose your model specifies that a dateTime column must simply be a `date` by default, but for a particular situation, you want to ensure that the attribute's value is a date _after a particular moment_. You can do this by mixing in this custom ruleset for this attribute at runtime.
 
@@ -230,7 +230,7 @@ $mixinRules = [
     'date_attribute' => ['date', 'after:tomorrow']
 ];
 
-$model->setMixinValidationRules($mixinRules);
+$model->addMixinValidationRules($mixinRules);
 
 $model->validate(); // The validator will use a *combination* of the mixin rules and the standard rules defined within the model.
 
