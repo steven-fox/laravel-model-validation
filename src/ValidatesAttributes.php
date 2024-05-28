@@ -3,6 +3,7 @@
 namespace StevenFox\LaravelModelValidation;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
 use Illuminate\Validation\ValidationException;
@@ -204,11 +205,17 @@ trait ValidatesAttributes
         //
     }
 
-    public function validationData(): array
+    public function validationData(array|string|null $keys = null): array
     {
-        return $this->prepareAttributesForValidation(
+        $data = $this->prepareAttributesForValidation(
             $this->rawAttributesForValidation()
         );
+
+        if (! $keys) {
+            return $data;
+        }
+
+        return Arr::only($data, $keys);
     }
 
     protected function rawAttributesForValidation(): array
@@ -221,7 +228,18 @@ trait ValidatesAttributes
         return $rawAttributes;
     }
 
-    public function validationRules(): array
+    public function validationRules(array|string|null $keys = null): array
+    {
+        $rules = $this->combinedValidationRules();
+
+        if (! $keys) {
+            return $rules;
+        }
+
+        return Arr::only($rules, $keys);
+    }
+
+    protected function combinedValidationRules(): array
     {
         // If the developer has set superseding validation rules for the model,
         // we will use those exclusively.
