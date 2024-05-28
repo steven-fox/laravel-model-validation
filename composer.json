@@ -1,6 +1,6 @@
 {
     "name": "steven-fox/laravel-model-validation",
-    "description": "Salvation for your Model validation.",
+    "description": "Salvation for your model validation.",
     "keywords": [
         "Steven Fox",
         "laravel",
@@ -18,7 +18,12 @@
     "require": {
         "php": "^8.2",
         "spatie/laravel-package-tools": "^1.16",
-        "illuminate/contracts": "^10.0||^11.0"
+        "illuminate/collections": "^10.0||^11.0",
+        "illuminate/contracts": "^10.0||^11.0",
+        "illuminate/database": "^10.0||^11.0",
+        "illuminate/events": "^10.0||^11.0",
+        "illuminate/support": "^10.0||^11.0",
+        "illuminate/validation": "^10.0||^11.0"
     },
     "require-dev": {
         "laravel/pint": "^1.14",
