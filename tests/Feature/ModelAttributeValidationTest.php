@@ -9,7 +9,7 @@ use StevenFox\LaravelModelValidation\Listeners\ValidateModel;
 use StevenFox\LaravelModelValidation\Tests\Fixtures\ValidatesWhenSavingModel;
 use StevenFox\LaravelModelValidation\Tests\Fixtures\ValidatingModel;
 
-beforeEach(function() {
+beforeEach(function () {
     // Reset the static variable on the trait prior to each test
     // to avoid state corruption.
     ValidatingModel::enableValidationWhenSaving();
