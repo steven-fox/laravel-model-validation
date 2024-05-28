@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Event;
+use StevenFox\LaravelModelValidation\Exceptions\ModelValidationException;
 use StevenFox\LaravelModelValidation\Listeners\ValidateModel;
 use StevenFox\LaravelModelValidation\Tests\Fixtures\ValidatesWhenSavingModel;
 use StevenFox\LaravelModelValidation\Tests\Fixtures\ValidatingModel;
@@ -21,12 +22,12 @@ it('registers an "updating" model event listeners when shouldValidateWhenSaving(
     Event::forget('*');
     Event::fake();
 
-    $m = new ValidatingModel();
+    $m = new ValidatesWhenSavingModel();
     $modelClassName = $m::class;
 
     expect($m::shouldValidateWhenSaving())->toBeTrue();
 
-    Event::assertListening("eloquent.updating: {$modelClassName}", Closure::class);
+    Event::assertListening("eloquent.updating: {$modelClassName}", ValidateModel::class);
 });
 
 it('will not register the model event listeners when shouldValidateOnSaving() is false', function () {
@@ -44,13 +45,14 @@ it('will not register the model event listeners when shouldValidateOnSaving() is
         ->and(Event::hasListeners("eloquent.creating: {$modelClassName}"))
         ->toBeFalse();
 });
-it('will re-register the model event listeners when reactivateValidationWhenSaving() is invoked', function () {
+
+it('the model event listeners will be registered even if validation is disabled during boot', function () {
     Event::forget('*');
     Event::fake();
 
     ValidatingModel::disableValidationWhenSaving();
 
-    $m = new ValidatingModel();
+    $m = new ValidatesWhenSavingModel();
     $modelClassName = $m::class;
 
     ValidatingModel::reactivateValidationWhenSaving();
@@ -63,15 +65,15 @@ it('will re-register the model event listeners when reactivateValidationWhenSavi
 });
 
 it('shouldNotValidateWhenSaving() will return the opposite of shouldValidateWhenSaving()', function () {
-    expect(ValidatingModel::shouldNotValidateWhenSaving())
+    expect(ValidatesWhenSavingModel::shouldNotValidateWhenSaving())
         ->toBeFalse()
-        ->toBe(! ValidatingModel::shouldValidateWhenSaving());
+        ->toBe(! ValidatesWhenSavingModel::shouldValidateWhenSaving());
 
-    ValidatingModel::disableValidationWhenSaving();
+    ValidatesWhenSavingModel::disableValidationWhenSaving();
 
-    expect(ValidatingModel::shouldNotValidateWhenSaving())
+    expect(ValidatesWhenSavingModel::shouldNotValidateWhenSaving())
         ->toBeTrue()
-        ->toBe(! ValidatingModel::shouldValidateWhenSaving());
+        ->toBe(! ValidatesWhenSavingModel::shouldValidateWhenSaving());
 });
 
 it('provides a whileValidatingDisabled() function to run a callback while validation is disabled', function () {
@@ -89,48 +91,32 @@ it('can validate a model and throw the ModelValidationException upon failure', f
 
 it('will use database-prepared attribute values for validation by default', function () {
     $m = new ValidatingModel([
+        'stringable' => str('foo'),
+        'datetime' => \Illuminate\Support\Facades\Date::create(2000, 1, 1),
         'json' => ['foo' => 'bar'],
+        'array_object' => ['foo' => 'bar'],
+        'collection' => collect(['foo' => 'bar']),
     ]);
 
     expect($m->validationData())->toBe([
-        'json' => \Illuminate\Database\Eloquent\Casts\Json::encode(['foo' => 'bar']),
+        'stringable' => 'foo',
+        'datetime' => '2000-01-01 00:00:00',
+        'json' => '{"foo":"bar"}',
+        'array_object' => '{"foo":"bar"}',
+        'collection' => '{"foo":"bar"}',
     ]);
 });
 
-it('will stop the validation process and return false if a "validating" event listener returns false', function () {
-    Event::listen(
-        'eloquent.validating: '.ValidatingModel::class,
-        function (ValidatingModel $model, \Illuminate\Validation\Validator $validator) {
-            return false;
-        });
-
-    $m = new ValidatingModel();
-
-    expect($m->validate())->toBeFalse();
-});
-
-it('will stop the validation process and return false if a "validated" event listener returns false', function () {
-    Event::listen(
-        'eloquent.validated: '.ValidatingModel::class,
-        function (ValidatingModel $model, \Illuminate\Validation\Validator $validator) {
-            return false;
-        });
-
-    $m = new ValidatingModel();
-
-    expect($m->validate())->toBeFalse();
-});
-
-it('can use temporary validation rules', function () {
+it('can use superseding validation rules', function () {
     $m = new ValidatingModel([
         'required_string' => null,
     ]);
 
-    $m->setTemporaryValidationRules([
+    $m->setSupersedingValidationRules([
         'required_string' => 'nullable|string',
     ]);
 
-    expect($m->getTemporaryValidationRules())
+    expect($m->getSupersedingValidationRules())
         ->toBe(['required_string' => 'nullable|string'])
         ->and($m->makeValidator()->getRules())
         ->toBe(['required_string' => ['nullable', 'string']])
@@ -138,31 +124,33 @@ it('can use temporary validation rules', function () {
         ->toBeFalse();
 });
 
-it('can clear the temporary validation rules', function () {
+it('can clear the superseding validation rules', function () {
     $m = new ValidatingModel();
 
-    $m->setTemporaryValidationRules([
+    $m->setSupersedingValidationRules([
         'required_string' => 'nullable|string',
     ]);
 
-    expect($m->getTemporaryValidationRules())->not()->toBeEmpty();
+    expect($m->getSupersedingValidationRules())->not()->toBeEmpty()
+        ->and($m->makeValidator()->getRules())->toBe(['required_string' => ['nullable', 'string']]);
 
-    $m->clearTemporaryValidationRules();
+    $m->clearSupersedingValidationRules();
 
-    expect($m->getTemporaryValidationRules())->toBeEmpty();
+    expect($m->getSupersedingValidationRules())->toBeEmpty()
+        ->and($m->makeValidator()->getRules())->not()->toBe(['required_string' => ['nullable', 'string']]);
 });
 
 it('uses independent rules for updating vs creating', function () {
     $m = new ValidatingModel();
 
     expect($m->exists)->toBeFalse()
-        ->and($m->makeValidator()->getRules()['unique'])
-        ->toBe(['unique:short_urls,url_key,NULL,id']);
+        ->and($m->makeValidator()->getRules()['unique_column'])
+        ->toBe(['unique:validating_models,NULL,NULL,id']);
 
     $m->id = 127;
     $m->exists = true;
 
     expect($m->exists)->toBeTrue()
-        ->and($m->makeValidator()->getRules()['unique'])
-        ->toBe(['unique:short_urls,url_key,"127",id']); // The model key is now a part of the rule for ignoring
+        ->and($m->makeValidator()->getRules()['unique_column'])
+        ->toBe(['unique:validating_models,NULL,"127",id']); // The model key is now a part of the rule for ignoring
 });
