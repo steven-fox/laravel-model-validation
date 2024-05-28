@@ -33,8 +33,8 @@ composer require steven-fox/laravel-model-validation
 
 ### The `ValidatesAttributes` Trait
 Add validation functionality to a Model by:
-1. Adding the `\StevenFox\LaravelModelValidation\ValidatesAttributes` trait to the model.
-2. Defining the rules via the `commonValidationRules(): array` method.
+1. Adding the `StevenFox\LaravelModelValidation\ValidatesAttributes` trait to the model.
+2. Defining the rules via the `commonValidationRules()` method.
 
 ```php
 use Illuminate\Database\Eloquent\Model;
@@ -44,7 +44,7 @@ class ValidatingModel extends Model
 {
     use ValidatesAttributes;
     
-    protected function commonValidationRules() : array
+    protected function commonValidationRules(): array
     {
         return [
             // rules go here as ['attribute' => ['rule1', 'rule2', ...]
@@ -57,8 +57,6 @@ $model = new ValidatingModel($request->json());
 
 $model->validate(); // A ModelValidationException is thrown if validation fails.
 $model->save();
-$validator = $model->validator();
-$validatedData = $validator->validated();
 
 // Other helpful methods...
 $passes = $model->passesValidation(); // An exception, will *not* be thrown if validation fails.
