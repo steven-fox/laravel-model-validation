@@ -39,7 +39,7 @@ trait ValidatesAttributes
 
     public static function bootValidatesAttributes(): void
     {
-        self::registerValidatingEventListeners();
+        static::registerValidatingEventListeners();
     }
 
     protected function initializeValidatesAttributes(): void
