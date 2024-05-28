@@ -39,8 +39,7 @@
     },
     "autoload": {
         "psr-4": {
-            "StevenFox\\LaravelModelValidation\\": "src/",
-            "StevenFox\\LaravelModelValidation\\Database\\Factories\\": "database/factories/"
+            "StevenFox\\LaravelModelValidation\\": "src/"
         }
     },
     "autoload-dev": {
@@ -78,10 +77,7 @@
         "laravel": {
             "providers": [
                 "StevenFox\\LaravelModelValidation\\LaravelModelValidationServiceProvider"
-            ],
-            "aliases": {
-                "LaravelModelValidation": "StevenFox\\LaravelModelValidation\\Facades\\LaravelModelValidation"
-            }
+            ]
         }
     },
     "minimum-stability": "dev",
