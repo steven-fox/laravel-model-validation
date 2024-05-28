@@ -83,7 +83,7 @@ trait ValidatesAttributes
         static::$validateWhenSaving = false;
     }
 
-    public static function reactivateValidationWhenSaving(): void
+    public static function enableValidationWhenSaving(): void
     {
         static::$validateWhenSaving = true;
     }
@@ -110,7 +110,7 @@ trait ValidatesAttributes
         try {
             return $callback();
         } finally {
-            static::reactivateValidationWhenSaving();
+            static::enableValidationWhenSaving();
         }
     }
 
