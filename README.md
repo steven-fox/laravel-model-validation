@@ -1,4 +1,4 @@
-# Salvation for your Model validation.
+# Salvation for your model validation.
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/steven-fox/laravel-model-validation.svg?style=flat-square)](https://packagist.org/packages/steven-fox/laravel-model-validation)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/steven-fox/laravel-model-validation/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/steven-fox/laravel-model-validation/actions?query=workflow%3Arun-tests+branch%3Amain)
@@ -6,6 +6,11 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/steven-fox/laravel-model-validation.svg?style=flat-square)](https://packagist.org/packages/steven-fox/laravel-model-validation)
 
 This package makes it easy to add validation helpers to your Eloquent models. Some similar packages already exist, but this package aims to achieve flawless functionality in a customizable, Laravel-esque way.
+
+The purpose of this package is to:
+1. Reduce code duplication by providing a single location where the baseline validation configuration is defined for your models.
+2. Make it easy to retrieve that configuration to supplement specific validation scenarios (like FormRequests, admin forms/actions, console input, etc.).
+3. Provide data integrity for applications by ensuring models adhere to a particular set of rules that is independent of UI.
 
 ## Key Features
 
