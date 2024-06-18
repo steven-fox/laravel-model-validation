@@ -340,7 +340,7 @@ it('provides access to specific validation rules', function () {
     expect($m->validationRules('stringable'))
         ->toHaveLength(1)
         ->toBe([
-            'stringable' => ['string']
+            'stringable' => ['string'],
         ])
         ->and($m->validationData('stringable'))
         ->toHaveLength(1)
