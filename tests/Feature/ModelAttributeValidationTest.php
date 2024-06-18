@@ -331,6 +331,24 @@ it('provides public access to the validation configuration', function () {
         ->toBe(['datetime' => 'custom datetime attribute name']);
 });
 
+it('provides access to specific validation rules', function () {
+    $m = new ValidatingModel([
+        'required_string' => 'foo',
+        'stringable' => 'bar',
+    ]);
+
+    expect($m->validationRules('stringable'))
+        ->toHaveLength(1)
+        ->toBe([
+            'stringable' => ['string']
+        ])
+        ->and($m->validationData('stringable'))
+        ->toHaveLength(1)
+        ->toBe([
+            'stringable' => 'bar',
+        ]);
+});
+
 it('provides a static validating method to register an event hook', function () {
     ValidatingModel::validating(function (ValidatingModel $model, Validator $validator) {
         expect($model->id)->toBe(123)

@@ -205,7 +205,7 @@ trait ValidatesAttributes
         //
     }
 
-    public function validationData(array|string|null $keys = null): array
+    public function validationData(string ...$keys): array
     {
         $data = $this->prepareAttributesForValidation(
             $this->rawAttributesForValidation()
@@ -228,7 +228,7 @@ trait ValidatesAttributes
         return $rawAttributes;
     }
 
-    public function validationRules(array|string|null $keys = null): array
+    public function validationRules(string ...$keys): array
     {
         $rules = $this->combinedValidationRules();
 
