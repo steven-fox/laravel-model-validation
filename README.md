@@ -252,6 +252,29 @@ If you need to customize the attributes used as data for validation, you can do 
 1. Overload the `rawAttributesForValidation()` method and return what you need.
 2. Overload the `prepareAttributesForValidation($attributes)` method to transform the default attribute values into a validation-ready state.
 
+### Accessing Validation Configuration
+You can access a model's validation rules, data, messages, and attribute names using the following methods.
+
+```php
+$model = new ValidatingModel();
+
+// --- Rules ---
+// Retrieve all rules with
+$allRules = $model->validationRules();
+// or, retrieve rules for certain attributes...
+$specificRules = $model->validationRules('attr_1', 'attr_2', ...);
+
+// --- Data ---
+// Retrieve all validation data with
+$allData = $model->validationData();
+// or, retrieve the data for certain attributes...
+$specificData = $model->validationData('attr_1', 'attr_2', ...);
+
+// --- Custom Messages and Attribute Names ---
+$customMessages = $model->customValidationMessages();
+$customAttributeNames = $model->customValidationAttributeNames();
+```
+
 ### Globally Disabling Validation When Saving
 It is possible to disable the automatic validation during the save process for models that implement the `ValidatesOnSave` interface. This can be helpful when setting up a particular test, for example.
 
