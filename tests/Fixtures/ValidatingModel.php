@@ -15,6 +15,16 @@ class ValidatingModel extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'required_string' => 'string',
+        'stringable' => AsStringable::class,
+        'datetime' => 'datetime',
+        'json' => 'array',
+        'array_object' => AsArrayObject::class,
+        'collection' => AsCollection::class,
+        'encrypted_object' => AsEncryptedArrayObject::class,
+    ];
+
     protected function baseValidationRules(): array
     {
         return [
@@ -26,19 +36,6 @@ class ValidatingModel extends Model
             'array_object' => ['array'],
             'collection' => ['array'],
             'encrypted_object' => ['encrypted'],
-        ];
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'required_string' => 'string',
-            'stringable' => AsStringable::class,
-            'datetime' => 'datetime',
-            'json' => 'array',
-            'array_object' => AsArrayObject::class,
-            'collection' => AsCollection::class,
-            'encrypted_object' => AsEncryptedArrayObject::class,
         ];
     }
 
